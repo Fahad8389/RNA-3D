@@ -152,6 +152,104 @@ The foundation is built on learnings from the previous Stanford Ribonanza compet
 
 ---
 
+## Claude Code Skills (MUST USE)
+
+> **IMPORTANT: Claude must use these skills at every relevant step. Do not write code from scratch when a skill exists.**
+
+This project has **463 bioinformatics and scientific skills** installed. These provide expert-level code patterns and best practices. **Always invoke the relevant skill before implementing any functionality.**
+
+### How to Use Skills
+
+Skills are auto-invoked when relevant, or can be called explicitly:
+- Type `/bio-<skill-name>` to invoke a specific skill
+- Skills provide validated, production-ready code patterns
+
+### Key Skills for This Project
+
+#### Sequence & Structure (USE THESE FIRST)
+| Skill | When to Use |
+|-------|-------------|
+| `bio-sequence-io-read-sequences` | Reading FASTA/FASTQ files |
+| `bio-sequence-manipulation-seq-objects` | Working with sequence objects |
+| `bio-structural-biology-structure-io` | Reading/writing PDB, mmCIF files |
+| `bio-structural-biology-alphafold-predictions` | Working with structure predictions |
+| `bio-structural-biology-geometric-analysis` | Distance matrices, angles, RMSD |
+| `bio-alignment-msa-parsing` | Multiple sequence alignments |
+| `bio-alignment-pairwise-alignment` | Sequence alignment |
+
+#### Data Processing
+| Skill | When to Use |
+|-------|-------------|
+| `bio-sequence-io-format-conversion` | Converting between formats |
+| `bio-sequence-io-batch-processing` | Processing multiple sequences |
+| `bio-expression-matrix-sparse-handling` | Large sparse matrices |
+| `biopython` | General BioPython operations |
+
+#### Machine Learning & Analysis
+| Skill | When to Use |
+|-------|-------------|
+| `pytorch-lightning` | Training loops, logging |
+| `scikit-learn` | Classical ML, preprocessing |
+| `anndata` | Annotated data matrices |
+| `dask` | Out-of-memory computation |
+
+#### Visualization & Reporting
+| Skill | When to Use |
+|-------|-------------|
+| `bio-data-visualization-heatmaps-clustering` | Distance matrix heatmaps |
+| `bio-data-visualization-specialized-omics-plots` | Publication-ready figures |
+| `bio-reporting-jupyter-reports` | Notebook reports |
+
+#### Databases & External Data
+| Skill | When to Use |
+|-------|-------------|
+| `bio-database-access-entrez-fetch` | Fetching from NCBI |
+| `alphafold-database` | AlphaFold structure database |
+| `biorxiv-database` | Literature search |
+| `uniprot-access` | Protein/RNA annotations |
+
+### Skill Usage Rules
+
+1. **Check for a skill BEFORE writing code** — If a skill exists for the task, use it
+2. **Combine skills** — Complex tasks may require multiple skills
+3. **Skills provide best practices** — They include error handling, edge cases, and optimizations
+4. **Document which skills were used** — Add comments noting the skill used
+
+### Example Workflow
+
+```python
+# Task: Load RNA sequences and compute pairwise distances
+
+# Step 1: Use bio-sequence-io-read-sequences skill
+from Bio import SeqIO
+sequences = list(SeqIO.parse("data/rna_sequences.fasta", "fasta"))
+
+# Step 2: Use bio-structural-biology-geometric-analysis skill
+from scipy.spatial.distance import pdist, squareform
+# ... compute distance matrix using skill patterns
+
+# Step 3: Use bio-data-visualization-heatmaps-clustering skill
+import seaborn as sns
+# ... visualize with skill-provided patterns
+```
+
+### Full Skill Categories Available
+
+- **Sequence I/O & Manipulation** (16 skills)
+- **Structural Biology** (6 skills)
+- **Alignment** (7 skills)
+- **RNA Analysis** (15+ skills)
+- **Data Visualization** (8 skills)
+- **Database Access** (10 skills)
+- **Workflow Management** (28 pipelines)
+- **Single-cell Analysis** (13 skills)
+- **Machine Learning Tools** (PyTorch, scikit-learn, etc.)
+- **Scientific Databases** (PubMed, UniProt, AlphaFold, etc.)
+
+**Total: 463 skills across 50+ categories**
+
+---
+
 ## The Learning Journey
 
 ### Lessons from the Trenches
