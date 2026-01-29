@@ -58,3 +58,6 @@ wandb/
 .env
 *.key
 credentials.json
+
+# Claude Code local skills (installed per-user)
+.claude/
