@@ -10,6 +10,25 @@ This project is our submission to the **Stanford RNA 3D Folding** Kaggle competi
 
 ---
 
+## Project Rules
+
+> **These are non-negotiable. No exceptions.**
+
+### 1. No Fake Data. No Fabrication. Ever.
+
+This isn't just about competition integrity—it's about scientific integrity. We're working on a problem that could impact real medicine and real biology.
+
+- **Never fabricate results**, metrics, or experimental outcomes
+- **Never invent data points** that don't exist
+- **Never misrepresent** what the model can or cannot do
+- **If something doesn't work, say it doesn't work**
+
+In science, a negative result honestly reported is infinitely more valuable than a positive result that's made up. Fabrication doesn't just disqualify you from competitions—it erodes trust in the entire field.
+
+*"The first principle is that you must not fool yourself—and you are the easiest person to fool."* — Richard Feynman
+
+---
+
 ## Why Should You Care?
 
 ### The AlphaFold Gap
