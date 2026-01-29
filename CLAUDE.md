@@ -57,13 +57,15 @@ Understanding how RNA folds = understanding how life's machinery works.
 | Aspect | Details |
 |--------|---------|
 | **Host** | Stanford University |
-| **Prize Pool** | $75,000 |
+| **Competition** | Stanford RNA 3D Folding **Part 2** |
+| **Prize Pool** | $75,000 ($50k / $15k / $10k) |
 | **Metric** | TM-score (0.0 to 1.0, higher = better) |
 | **Input** | RNA sequence (AUGC letters) |
-| **Output** | 3D coordinates (x, y, z) for each nucleotide |
+| **Output** | 3D coordinates (x, y, z) for **C1' atom** of each nucleotide |
 | **Predictions** | 5 structures per sequence (best of 5 scored) |
 | **Runtime** | ≤8 hours on Kaggle GPU |
-| **Deadline** | September 24, 2025 |
+| **Deadline** | **March 25, 2026** |
+| **What's New in Part 2** | Harder targets with NO templates, stricter evaluation |
 
 ### What's TM-score?
 
@@ -94,41 +96,65 @@ RNA-3D/
 
 ## Technical Architecture
 
-### The Pipeline (How Data Flows)
+> **Our Strategy**: Evolve RibonanzaNet2 with diffusion denoising (Baker Lab recipe applied to RNA)
+>
+> See [docs/workflow.md](docs/workflow.md) for detailed workflow diagrams.
+
+### The Core Idea (Pokemon Evolution)
 
 ```
-RNA Sequence → Tokenization → Feature Extraction → Neural Network → 3D Coordinates
-     ↓              ↓               ↓                   ↓              ↓
-  "AUGCGUA"    [0,1,2,3,2,1,0]   [embeddings,      [Transformer/    [x,y,z for
-                                  MSA, etc.]        GNN layers]      each base]
+RibonanzaNet2 (Part 1)              RibonanzaNet2-Diffusion (Our Model)
+        │                                      │
+        │  (understands RNA)                   │  (understands RNA)
+        │  (predicts features)                 │  (predicts features)
+        │                                      │  + DENOISING capability
+        │                                      │  + generates 3D structures
+     ──┴──                                  ──┴──
+      LV.1          ───EVOLVE───►            LV.2
 ```
 
-### Key Components
+### The Pipeline
 
-#### 1. **Input Processing**
-- Convert sequence letters (A, U, G, C) into numerical tokens
-- Generate **Multiple Sequence Alignments (MSA)** if available—these show evolutionary patterns
-- Compute structural features (base pairing probabilities, secondary structure predictions)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  RibonanzaNet2 Encoder (PRETRAINED - 100M params)               │
+│  Sequence → Embedding → Transformer → RNA Features              │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────────┐
+│  Diffusion Module (NEW - TRAIN THIS)                            │
+│  Noisy coords + Features + Timestep → Clean 3D coords           │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-#### 2. **The Model** (RibonanzaNet-inspired)
-The foundation is built on learnings from the previous Stanford Ribonanza competition:
+### How Diffusion Works
 
-- **Backbone**: Transformer architecture (attention is all you need, right?)
-- **Structural Awareness**: Graph Neural Networks to capture spatial relationships
-- **Multi-task Learning**: Predict multiple properties simultaneously
+```
+TRAINING:
+    Real structure → Add noise → Noisy structure → Model predicts clean
 
-#### 3. **Output Heads**
-- Predict (x, y, z) coordinates for the C1' atom of each nucleotide
-- Generate 5 diverse structures using different sampling strategies
+INFERENCE:
+    Pure random noise → Denoise 200 steps → Clean 3D structure
 
-### Why These Technical Choices?
+    The sequence GUIDES what structure to generate
+    Run 5x with different seeds → 5 diverse predictions
+```
+
+### Why This Approach?
 
 | Choice | Why |
 |--------|-----|
-| **Transformers** | RNA is a sequence problem. Attention mechanisms naturally capture long-range dependencies (a base at position 5 might pair with position 95) |
-| **Graph Neural Networks** | Once we have distance predictions, GNNs help refine the 3D structure by "message passing" between nearby atoms |
-| **Multi-task Learning** | Training on multiple related tasks (secondary structure, distances, angles) gives the model richer representations |
-| **Ensemble of 5** | Structural prediction is uncertain. Multiple predictions hedge our bets. |
+| **RibonanzaNet2** | Already understands RNA from 2M+ sequences. Don't rebuild. |
+| **Diffusion** | RFdiffusion proved: pretrained model + denoising = powerful generation |
+| **Freeze encoder** | Faster training, encoder already knows RNA patterns |
+| **Train denoiser** | Only teach it: features → 3D coordinates |
+| **5 predictions** | Different random seeds give diverse valid structures |
+
+### Key Insight from RFdiffusion
+
+> "Without pre-training, RFdiffusion outputs bear little resemblance to proteins."
+
+Same applies to RNA: **Pretraining is essential.** The diffusion model leverages RibonanzaNet2's deep RNA understanding.
 
 ---
 
@@ -352,15 +378,24 @@ After every Kaggle competition, top teams share their approaches. This is gold. 
 
 ## Resources & References
 
-### Papers to Read
-1. **RibonanzaNet**: The foundation model from the previous competition
-2. **AlphaFold2**: Understand how the protein version works
-3. **RNA-Puzzles assessments**: See what works and what doesn't
+### Key Papers
+1. **RibonanzaNet** - [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC10925082/) - Foundation model from Ribonanza competition
+2. **RFdiffusion** - [Nature](https://www.nature.com/articles/s41586-023-06415-8) - Baker Lab's diffusion for proteins (our inspiration)
+3. **RNAgrail** - [NeurIPS 2024](https://neurips.cc/virtual/2024/102488) - Diffusion for RNA, beats AlphaFold3
+4. **RNA-FrameFlow** - [arXiv](https://arxiv.org/abs/2406.13839) - Flow matching for RNA backbone design
+5. **RoseTTAFoldNA** - [Nature Methods](https://www.nature.com/articles/s41592-023-02086-5) - RNA structure prediction
 
-### Useful Links
-- [Competition Page](https://www.kaggle.com/competitions/stanford-rna-3d-folding)
-- [CASP16 RNA Results](https://predictioncenter.org/casp16/)
-- [ViennaRNA Package](https://www.tbi.univie.ac.at/RNA/)
+### Code Repositories
+- [RibonanzaNet GitHub](https://github.com/Shujun-He/RibonanzaNet) - Official implementation
+- [RibonanzaNet Weights](https://www.kaggle.com/datasets/shujun717/ribonanzanet-weights) - Pretrained checkpoints
+- [RNA-FrameFlow GitHub](https://github.com/rish-16/rna-backbone-design) - Diffusion for RNA
+- [RFdiffusion GitHub](https://github.com/RosettaCommons/RFdiffusion) - Reference implementation
+- [MultiMolecule RibonanzaNet](https://huggingface.co/multimolecule/ribonanzanet) - HuggingFace integration
+
+### Competition Links
+- [Part 2 Competition](https://www.kaggle.com/competitions/stanford-rna-3d-folding-2) - Current competition
+- [Part 1 Competition](https://www.kaggle.com/competitions/stanford-rna-3d-folding) - Previous competition
+- [Part 1 Results Paper](https://www.biorxiv.org/content/10.64898/2025.12.30.696949v1.full) - What worked
 
 ### Communities
 - Kaggle Discussion Forums (competition-specific)
@@ -374,7 +409,32 @@ After every Kaggle competition, top teams share their approaches. This is gold. 
 | Date | Milestone | Notes |
 |------|-----------|-------|
 | Jan 2025 | Project created | Initial setup, CLAUDE.md written |
-| | | |
+| Jan 2026 | **Session 1: Strategy Research** | Studied Part 1 winners, chose RibonanzaNet2 + Diffusion approach |
+
+### Session 1 Summary (Jan 2026)
+
+**Research Completed:**
+- Part 1 winners used template-based approaches (95% of targets had templates)
+- RibonanzaNet (11M) → RibonanzaNet2 (100M params) foundation model
+- Diffusion models for RNA: RNAgrail (beats AlphaFold3), RNA-FrameFlow
+- RFdiffusion recipe: pretrained model + denoising = powerful generation
+
+**Strategy Decided:**
+- Use RibonanzaNet2 as pretrained encoder (don't rebuild)
+- Add diffusion denoising module (train this part)
+- Freeze encoder initially, train only denoiser (~10-25 hours)
+- Generate 5 structures with different random seeds
+
+**Competition Compliance Verified:**
+- ≤8 hour runtime ✅
+- Internet disabled (attach weights as dataset) ✅
+- Public data only (no private lab data) ✅
+- Open source license if win ✅
+
+**Next Session Focus:**
+- Differentiation strategies (everyone may try similar approaches)
+- Environment setup and data download
+- Start implementation
 
 ---
 
